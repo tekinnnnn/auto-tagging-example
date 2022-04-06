@@ -1,0 +1,25 @@
+#/bin/bash
+
+while read oldrev newrev ref
+do
+if [[ $ref =~ .*/main$ ]];
+then
+    tag_base="v$(date '+%Y.%m%d')"
+    tag_pattern="$tag_base.[0-9]+"
+    
+    if [[ "$(git tag -l | grep -E "$tag_pattern")" != "" ]]; then
+        latest_tag=$(git tag | grep -Eo "$tag_pattern" | sort -V | tail -n 1)
+        latest_tag_number=$((echo "$latest_tag" | grep -Eo "[0-9]+$") + 1)
+        new_tag="$tag_base.$latest_tag_number"
+        echo "New tag: $new_tag"
+    
+        git tag -a "$new_tag" -m "Release $new_tag"
+        exit 0
+    fi
+    
+    new_tag="$tag_base.1"
+    echo "New tag: $new_tag"
+    
+    git tag -a "$new_tag" -m "Release $new_tag"   
+fi
+done
